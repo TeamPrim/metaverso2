@@ -8,23 +8,151 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Mantengo los estilos anteriores y agrego algunos nuevos */
+        :root {
+            --primary-color: #ffffff;
+            --secondary-color: #a1a1aa;
+            --background-dark: #0f0f0f;
+            --background-light: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --shadow-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--background-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 40px;
+            background: rgba(15, 15, 15, 0.95);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-left: 30px;
+            font-weight: 400;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: var(--primary-color);
+        }
+
+        #canvas-container {
+            flex: 1;
+            position: relative;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        #ui-panel {
+            position: absolute;
+            bottom: 40px;
+            background: rgba(26, 26, 26, 0.9);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            max-width: 400px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        #ui-panel:hover {
+            transform: translateY(-5px);
+        }
+
+        h1 {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+Volkswagen Amarok 2025: Lanzamiento y características principales        }
+
+        p {
+            font-size: 1em;
+            line-height: 1.5;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        #controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: var(--primary-color);
+            color: var(--background-dark);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+
+        .btn:hover {
+            background: var(--text-secondary);
+            transform: translateY(-2px);
+        }
+
         .slider-container {
             margin: 10px 0;
             width: 100%;
         }
+
         .slider-label {
             display: block;
             margin-bottom: 5px;
             color: var(--text-secondary);
+            font-size: 0.9em;
         }
+
         input[type="range"] {
             width: 100%;
             background: var(--background-light);
             -webkit-appearance: none;
             height: 5px;
             border-radius: 3px;
+            outline: none;
         }
+
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 15px;
@@ -33,10 +161,97 @@
             border-radius: 50%;
             cursor: pointer;
         }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        footer {
+            padding: 20px;
+            text-align: center;
+            background: var(--background-light);
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        .logo-footer {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--background-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            transition: opacity 0.5s ease;
+        }
+
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid var(--text-secondary);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #ui-panel {
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        @media (max-width: 768px) {
+            #ui-panel {
+                bottom: 20px;
+                left: 20px;
+                right: 20px;
+                max-width: none;
+            }
+
+            header {
+                padding: 15px 20px;
+            }
+
+            nav a {
+                margin-left: 15px;
+            }
+
+            #controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Mantengo el HTML anterior del loader, header y footer -->
     <div id="loader">
         <div class="loader-spinner"></div>
     </div>
@@ -60,7 +275,6 @@
                 <button class="btn" onclick="toggleFullscreen()">Pantalla Completa</button>
                 <button class="btn" onclick="toggleAutoRotate()">Auto-rotación</button>
             </div>
-            <!-- Nuevos controles de edición -->
             <div class="slider-container">
                 <label class="slider-label">Zoom</label>
                 <input type="range" id="zoomSlider" min="2" max="10" value="5" step="0.1">
@@ -86,7 +300,17 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
     <script>
-        // Configuración básica (mantengo lo anterior)
+        // Loader
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'none';
+                }, 500);
+            }, 1000);
+        });
+
+        // Scene setup
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x0f0f0f);
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -95,7 +319,7 @@
         renderer.setPixelRatio(window.devicePixelRatio);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        // Material con shader personalizado para efectos de imagen
+        // Shader Material para efectos de imagen
         const material = new THREE.ShaderMaterial({
             uniforms: {
                 texture1: { value: null },
@@ -125,11 +349,8 @@
                 
                 void main() {
                     vec4 color = texture2D(texture1, vUv);
-                    // Aplicar brillo
                     color.rgb *= brightness;
-                    // Aplicar contraste
                     color.rgb = (color.rgb - 0.5) * contrast + 0.5;
-                    // Aplicar saturación
                     color.rgb = adjustSaturation(color.rgb, saturation);
                     gl_FragColor = color;
                 }
@@ -144,7 +365,7 @@
         const plane = new THREE.Mesh(geometry, material);
         scene.add(plane);
 
-        // Iluminación básica
+        // Lighting
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -153,23 +374,19 @@
 
         camera.position.z = 5;
 
-        // Controles existentes (drag, etc.) se mantienen
+        // Mouse controls
         let isDragging = false;
         let previousMousePosition = { x: 0, y: 0 };
         let autoRotate = false;
 
-        // Nuevo: Control de zoom con rueda del ratón
-        document.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const zoomSpeed = 0.1;
-            camera.position.z += e.deltaY * zoomSpeed;
-            camera.position.z = Math.max(2, Math.min(10, camera.position.z)); // Límites de zoom
-            updateZoomSlider();
-        }, { passive: false });
+        document.addEventListener('mousedown', (e) => {
+            isDragging = true;
+        });
 
-        // Event listeners existentes se mantienen
-        document.addEventListener('mousedown', (e) => { isDragging = true; });
-        document.addEventListener('mouseup', (e) => { isDragging = false; });
+        document.addEventListener('mouseup', (e) => {
+            isDragging = false;
+        });
+
         document.addEventListener('mousemove', (e) => {
             if (isDragging) {
                 const deltaMove = {
@@ -184,7 +401,34 @@
             }
         });
 
-        // Carga de texturas (mantenido)
+        // Zoom con rueda del ratón
+        document.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSpeed = 0.1;
+            camera.position.z += e.deltaY * zoomSpeed;
+            camera.position.z = Math.max(2, Math.min(10, camera.position.z));
+            updateZoomSlider();
+        }, { passive: false });
+
+        // Keyboard controls
+        let uiVisible = true;
+        document.addEventListener('keydown', (event) => {
+            switch(event.key.toLowerCase()) {
+                case 'q':
+                    currentTextureIndex = (currentTextureIndex - 1 + textures.length) % textures.length;
+                    updateTexture();
+                    break;
+                case 'e':
+                    currentTextureIndex = (currentTextureIndex + 1) % textures.length;
+                    updateTexture();
+                    break;
+                case 'h':
+                    toggleUI();
+                    break;
+            }
+        });
+
+        // Cargar texturas desde JSON
         fetch('./images.json')
             .then(response => response.json())
             .then(data => {
@@ -199,7 +443,7 @@
                 updateTexture();
             });
 
-        // Nuevas funciones de control
+        // Controles de sliders
         const zoomSlider = document.getElementById('zoomSlider');
         const saturationSlider = document.getElementById('saturationSlider');
         const brightnessSlider = document.getElementById('brightnessSlider');
@@ -232,7 +476,7 @@
             });
         }
 
-        // Funciones existentes
+        // Animation loop
         function animate() {
             requestAnimationFrame(animate);
             if (autoRotate) {
@@ -242,18 +486,19 @@
         }
         animate();
 
+        // Window resize handler
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
+        // UI Functions
         function resetView() {
             plane.rotation.set(0, 0, 0);
             camera.position.set(0, 0, 5);
             camera.lookAt(0, 0, 0);
             updateZoomSlider();
-            // Resetear sliders de edición
             saturationSlider.value = 1;
             brightnessSlider.value = 1;
             contrastSlider.value = 1;
@@ -281,15 +526,22 @@
             autoRotate = !autoRotate;
         }
 
-        // Loader (mantenido)
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                document.getElementById('loader').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('loader').style.display = 'none';
-                }, 500);
-            }, 1000);
-        });
+        function toggleUI() {
+            uiVisible = !uiVisible;
+            const uiPanel = document.getElementById('ui-panel');
+            const header = document.getElementById('header-ui');
+            const footer = document.getElementById('footer-ui');
+            
+            if (uiVisible) {
+                uiPanel.classList.remove('hidden');
+                header.classList.remove('hidden');
+                footer.classList.remove('hidden');
+            } else {
+                uiPanel.classList.add('hidden');
+                header.classList.add('hidden');
+                footer.classList.add('hidden');
+            }
+        }
     </script>
 </body>
 </html>
