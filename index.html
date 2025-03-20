@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor 3D Interactivo - Powered by Three.js</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Mantengo los estilos anteriores y agrego algunos nuevos */
+        .slider-container {
+            margin: 10px 0;
+            width: 100%;
+        }
+        .slider-label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+        }
+        input[type="range"] {
+            width: 100%;
+            background: var(--background-light);
+            -webkit-appearance: none;
+            height: 5px;
+            border-radius: 3px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mantengo el HTML anterior del loader, header y footer -->
+    <div id="loader">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <header id="header-ui">
+        <div class="logo">Visor 3D</div>
+        <nav>
+            <a href="#home">Inicio</a>
+            <a href="#features">Funciones</a>
+            <a href="#contact">Contacto</a>
+        </nav>
+    </header>
+
+    <div id="canvas-container">
+        <div id="ui-panel">
+            <h1>Visor 3D Interactivo</h1>
+            <p>Explora imágenes en un entorno tridimensional con tecnología avanzada.</p>
+            <div id="controls">
+                <button class="btn" onclick="resetView()">Reiniciar</button>
+                <button class="btn" onclick="changeTexture()">Textura</button>
+                <button class="btn" onclick="toggleFullscreen()">Pantalla Completa</button>
+                <button class="btn" onclick="toggleAutoRotate()">Auto-rotación</button>
+            </div>
+            <!-- Nuevos controles de edición -->
+            <div class="slider-container">
+                <label class="slider-label">Zoom</label>
+                <input type="range" id="zoomSlider" min="2" max="10" value="5" step="0.1">
+            </div>
+            <div class="slider-container">
+                <label class="slider-label">Saturación</label>
+                <input type="range" id="saturationSlider" min="0" max="2" value="1" step="0.1">
+            </div>
+            <div class="slider-container">
+                <label class="slider-label">Brillo</label>
+                <input type="range" id="brightnessSlider" min="0" max="2" value="1" step="0.1">
+            </div>
+            <div class="slider-container">
+                <label class="slider-label">Contraste</label>
+                <input type="range" id="contrastSlider" min="0" max="2" value="1" step="0.1">
+            </div>
+        </div>
+    </div>
+
+    <footer id="footer-ui">
+        Desarrollado con <span class="logo-footer">Three.js</span> | © 2025 <span class="logo-footer">xAI Technologies</span>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script>
+        // Configuración básica (mantengo lo anterior)
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0f0f0f);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Material con shader personalizado para efectos de imagen
+        const material = new THREE.ShaderMaterial({
+            uniforms: {
+                texture1: { value: null },
+                saturation: { value: 1.0 },
+                brightness: { value: 1.0 },
+                contrast: { value: 1.0 }
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D texture1;
+                uniform float saturation;
+                uniform float brightness;
+                uniform float contrast;
+                varying vec2 vUv;
+                
+                vec3 adjustSaturation(vec3 color, float value) {
+                    const vec3 grey = vec3(0.299, 0.587, 0.114);
+                    float greyVal = dot(color, grey);
+                    return mix(vec3(greyVal), color, value);
+                }
+                
+                void main() {
+                    vec4 color = texture2D(texture1, vUv);
+                    // Aplicar brillo
+                    color.rgb *= brightness;
+                    // Aplicar contraste
+                    color.rgb = (color.rgb - 0.5) * contrast + 0.5;
+                    // Aplicar saturación
+                    color.rgb = adjustSaturation(color.rgb, saturation);
+                    gl_FragColor = color;
+                }
+            `,
+            side: THREE.DoubleSide
+        });
+
+        const geometry = new THREE.PlaneGeometry(5, 3);
+        const textureLoader = new THREE.TextureLoader();
+        let currentTextureIndex = 0;
+        let textures = [];
+        const plane = new THREE.Mesh(geometry, material);
+        scene.add(plane);
+
+        // Iluminación básica
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(0, 1, 1);
+        scene.add(directionalLight);
+
+        camera.position.z = 5;
+
+        // Controles existentes (drag, etc.) se mantienen
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let autoRotate = false;
+
+        // Nuevo: Control de zoom con rueda del ratón
+        document.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSpeed = 0.1;
+            camera.position.z += e.deltaY * zoomSpeed;
+            camera.position.z = Math.max(2, Math.min(10, camera.position.z)); // Límites de zoom
+            updateZoomSlider();
+        }, { passive: false });
+
+        // Event listeners existentes se mantienen
+        document.addEventListener('mousedown', (e) => { isDragging = true; });
+        document.addEventListener('mouseup', (e) => { isDragging = false; });
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaMove = {
+                    x: e.clientX - previousMousePosition.x,
+                    y: e.clientY - previousMousePosition.y
+                };
+                plane.rotation.y += deltaMove.x * 0.005;
+                plane.rotation.x += deltaMove.y * 0.005;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            } else {
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            }
+        });
+
+        // Carga de texturas (mantenido)
+        fetch('./images.json')
+            .then(response => response.json())
+            .then(data => {
+                textures = data.textures;
+                if (textures.length > 0) {
+                    updateTexture();
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar el JSON:', error);
+                textures = ['https://threejs.org/examples/textures/uv_grid_opengl.jpg'];
+                updateTexture();
+            });
+
+        // Nuevas funciones de control
+        const zoomSlider = document.getElementById('zoomSlider');
+        const saturationSlider = document.getElementById('saturationSlider');
+        const brightnessSlider = document.getElementById('brightnessSlider');
+        const contrastSlider = document.getElementById('contrastSlider');
+
+        zoomSlider.addEventListener('input', () => {
+            camera.position.z = parseFloat(zoomSlider.value);
+        });
+
+        saturationSlider.addEventListener('input', () => {
+            material.uniforms.saturation.value = parseFloat(saturationSlider.value);
+        });
+
+        brightnessSlider.addEventListener('input', () => {
+            material.uniforms.brightness.value = parseFloat(brightnessSlider.value);
+        });
+
+        contrastSlider.addEventListener('input', () => {
+            material.uniforms.contrast.value = parseFloat(contrastSlider.value);
+        });
+
+        function updateZoomSlider() {
+            zoomSlider.value = camera.position.z;
+        }
+
+        function updateTexture() {
+            textureLoader.load(textures[currentTextureIndex], (texture) => {
+                material.uniforms.texture1.value = texture;
+                material.needsUpdate = true;
+            });
+        }
+
+        // Funciones existentes
+        function animate() {
+            requestAnimationFrame(animate);
+            if (autoRotate) {
+                plane.rotation.y += 0.005;
+            }
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function resetView() {
+            plane.rotation.set(0, 0, 0);
+            camera.position.set(0, 0, 5);
+            camera.lookAt(0, 0, 0);
+            updateZoomSlider();
+            // Resetear sliders de edición
+            saturationSlider.value = 1;
+            brightnessSlider.value = 1;
+            contrastSlider.value = 1;
+            material.uniforms.saturation.value = 1;
+            material.uniforms.brightness.value = 1;
+            material.uniforms.contrast.value = 1;
+        }
+
+        function changeTexture() {
+            currentTextureIndex = (currentTextureIndex + 1) % textures.length;
+            updateTexture();
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        function toggleAutoRotate() {
+            autoRotate = !autoRotate;
+        }
+
+        // Loader (mantenido)
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'none';
+                }, 500);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
